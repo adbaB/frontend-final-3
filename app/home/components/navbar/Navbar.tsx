@@ -1,6 +1,6 @@
 'use client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import userImage from '../../../images/user.png'
+import userImage from '../../../../images/user.png'
 import React from 'react'
 
 export const Navbar = () => {

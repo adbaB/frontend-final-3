@@ -1,5 +1,5 @@
-import { Navbar } from "@/components/components/navbar/Navbar";
-import { Sidebar } from "@/components/components/sidebar/Sidebar";
+import { Navbar } from "./components/navbar/Navbar";
+import { Sidebar } from "./components/sidebar/Sidebar";
 import React from "react";
 interface PropsHomeLayout {
   children: React.ReactNode;
