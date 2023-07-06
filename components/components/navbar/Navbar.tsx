@@ -2,6 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import userImage from '../../../images/user.png'
 import React from 'react'
+import { StaticImageData } from 'next/image';
 
 export const Navbar = () => {
   return (
@@ -10,7 +11,7 @@ export const Navbar = () => {
       
       <div>
       <Avatar>
-      <AvatarImage src={userImage} alt="userIcon" />
+      <AvatarImage className='object-cover ' src={userImage.toString()} alt="userIcon" />
       <AvatarFallback>AV</AvatarFallback>
     </Avatar>
       </div>

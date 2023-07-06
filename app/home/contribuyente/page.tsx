@@ -39,6 +39,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import Link from "next/link"
+import { Plus } from "lucide-react"
 
 const data: Payment[] = [
   {
@@ -199,6 +201,19 @@ export default function DataTableDemo() {
 
   return (
     <div className="w-full">
+      <div className="mt-6 flex justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Contribuyentes</h2>
+        </div>
+        <Button className="bg-green-600 hover:bg-green-700">
+          <Link href="/home/contribuyente/register" className="flex items-center gap-2">
+          <Plus />
+          <p className="font-bold">
+            Agregar
+          </p>
+            </Link>
+        </Button>
+      </div>
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter emails..."
