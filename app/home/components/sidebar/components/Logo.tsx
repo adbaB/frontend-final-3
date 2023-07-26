@@ -1,6 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
-import logo from '../../../../images/logo.svg'
+import logo from '../../../../../images/logo.svg'
 export const Logo = () => {
   return (
     <div className='border-b px-6 '>

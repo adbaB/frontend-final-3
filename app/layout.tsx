@@ -1,6 +1,9 @@
+'use client'
+//TODO QUITAR EL USE CLIENTE DE LAYOUT 
 import AuthProvider from "@/components/providers/AuthProvider";
 import "./globals.css";
 import { Inter } from "next/font/google";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,9 +20,10 @@ export default function RootLayout({
   return (
     <html lang="es">
       <AuthProvider>
-        <body className={` h-screen ${inter.className}`}>
-          {children}
-          </body>
+        <body className={`h-screen ${inter.className}`}>
+          <main className="h-full">{children}</main>
+          <Toaster />
+        </body>
       </AuthProvider>
     </html>
   );

@@ -11,7 +11,7 @@ export default function Homelayout({ children }: PropsHomeLayout) {
       <Sidebar />
       <div className=" w-full">
         <Navbar />
-        <div className="px-6">{children}</div>
+        <div className="px-6 h-[90%]">{children}</div>
       </div>
     </div>
   );

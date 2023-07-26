@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/table"
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { useContribuyente } from "./hooks/useContribuyente"
 
 const data: Payment[] = [
   {
@@ -198,7 +199,7 @@ export default function DataTableDemo() {
       rowSelection,
     },
   })
-
+  const {contribuyente, setContribuyente} = useContribuyente()
   return (
     <div className="w-full">
       <div className="mt-6 flex justify-between">

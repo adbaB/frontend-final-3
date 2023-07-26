@@ -6,7 +6,7 @@ import { StaticImageData } from 'next/image';
 
 export const Navbar = () => {
   return (
-    <div className='flex justify-between items-center p-4 shadow-md	bg-blue-800 text-white uppercase'>
+    <div className='flex justify-between items-center p-4 shadow-md	bg-blue-800 text-white uppercase sticky'>
       <h1 className='text-base font-bold'>Servicio autónomo de administración tributaria del municipio cabimas</h1>
       
       <div>

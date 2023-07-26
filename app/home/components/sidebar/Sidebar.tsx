@@ -13,7 +13,8 @@ import { AccordionContent } from "@radix-ui/react-accordion";
 
 export const Sidebar = () => {
   return (
-    <div className="w-64 border-r border-gray-300 border-dashed ">
+    <div className="w-[15%] min-w-[200px] border-r border-gray-300 border-dashed ">
+      <div >
       <Logo />
       <ul className="mt-5 px-5">
         <li>
@@ -81,6 +82,8 @@ export const Sidebar = () => {
           </Accordion>
         </li>
       </ul>
+      </div>
+
     </div>
   );
 };

@@ -1,7 +1,6 @@
 "use client";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { set, useForm } from "react-hook-form";
+
 import {
   Form,
   FormControl,
@@ -26,34 +25,28 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
-import { BaseSyntheticEvent, useState } from "react";
+
 import { Textarea } from "@/components/ui/textarea";
+import { useInputCedula } from "./hooks/useInputCedula";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { TypeContribuyente } from "@/models/contribuyente.models";
 
 function RegisterContribuyente() {
-  const { schema, TypeContribuyenteEnum } = useFormContribuyente();
-  const [InputCedula, setInputCedula] = useState<string>("");
+  const {
+    tipoContribuyenteArray,
+    parroquia,
+    sectores,
+    getFilteredParroquia,
+    getFilteredSector,
+    filteredParroquia,
+    filteredSector,
+    form,
+    onSubmitForm
+  } = useFormContribuyente();
 
-  const languages = [
-    { label: "Persona Natural", value: TypeContribuyenteEnum.PersonaNatural },
-    {
-      label: "Germán Ríos Linares",
-      value: TypeContribuyenteEnum.PersonaNaturalComercial,
-    },
-    {
-      label: "Persona Natural Comercial",
-      value: TypeContribuyenteEnum.PersonaJuridica,
-    },
-  ];
-  const form = useForm<Zod.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      nombre: "",
-      cedula: "",
-      telefono: "",
-      direccion: "",
-      email: "",
-    },
-  });
+  const { handlerChange } = useInputCedula();
+
+
 
   return (
     <div className="mt-6 px-10">
@@ -61,7 +54,7 @@ function RegisterContribuyente() {
         Registro del contribuyente
       </h1>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(console.log)} className="mt-4">
+        <form onSubmit={form.handleSubmit(onSubmitForm)} className="mt-4">
           <div className="flex gap-12 mb-4">
             <FormField
               control={form.control}
@@ -72,31 +65,11 @@ function RegisterContribuyente() {
                   <FormControl>
                     <Input
                       className="w-[250px]"
+                      autoComplete="off"
                       {...field}
                       {...form.register("cedula", {
                         onChange: (e) => {
-                          if (e.target.value.length === 1) {
-                            if (InputCedula.length === 2) {
-                              field.onChange("");
-                              setInputCedula("");
-                            } else {
-                              if (e.target.value.match(/^[VGJEvgje]+$/)) {
-                                field.onChange(
-                                  `${e.target.value.toUpperCase()}-`
-                                );
-                                setInputCedula(
-                                  `${e.target.value.toUpperCase()}-`
-                                );
-                              } else {
-                                if (e.target.value.match(/^[0-9]+$/)) {
-                                  field.onChange(`V-${e.target.value}`);
-                                  setInputCedula(`V-${e.target.value}`);
-                                } else {
-                                  field.onChange("");
-                                }
-                              }
-                            }
-                          }
+                          handlerChange(e, field);
                         },
                       })}
                     />
@@ -109,17 +82,17 @@ function RegisterContribuyente() {
               control={form.control}
               name="nombre"
               render={({ field }) => (
-                <FormItem className="w-[70%]">
+                <FormItem className="w-full">
                   <FormLabel>Nombre/Razón Social</FormLabel>
                   <FormControl>
-                    <Input className="w-full" {...field} />
+                    <Input className="w-full" {...field}  autoComplete="off"/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          <div className="flex justify-start gap-12 mb-4 flex-wrap	">
+          <div className="flex justify-start gap-12 mb-4 	">
             <FormField
               control={form.control}
               name="typeContribuyente"
@@ -138,8 +111,8 @@ function RegisterContribuyente() {
                           )}
                         >
                           {field.value
-                            ? languages.find(
-                                (language) => language.value === field.value
+                            ? tipoContribuyenteArray.find(
+                                (tipo) =>TypeContribuyente[tipo.value].toLowerCase() === field.value
                               )?.label
                             : "Razón Social"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -149,12 +122,12 @@ function RegisterContribuyente() {
                     <PopoverContent className="w-[200px] p-0">
                       <Command>
                         <CommandInput placeholder="Razón Social..." />
-                        <CommandEmpty>No framework found.</CommandEmpty>
+                        <CommandEmpty>No Encotrado.</CommandEmpty>
                         <CommandGroup>
-                          {languages.map((language) => (
+                          {tipoContribuyenteArray.map((tipo) => (
                             <CommandItem
-                              value={language.value}
-                              key={language.value}
+                              value={TypeContribuyente[tipo.value]}
+                              key={tipo.value}
                               onSelect={(value) => {
                                 form.setValue(
                                   "typeContribuyente",
@@ -165,12 +138,12 @@ function RegisterContribuyente() {
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  language.value === field.value
+                                  TypeContribuyente[tipo.value] === field.value
                                     ? "opacity-100"
                                     : "opacity-0"
                                 )}
                               />
-                              {language.label}
+                              {tipo.label}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -182,13 +155,14 @@ function RegisterContribuyente() {
                 </FormItem>
               )}
             />
-            <div className="flex gap-10 ">
+            <div className="flex gap-10 w-full justify-start">
               <FormField
                 control={form.control}
-                name="typeContribuyente"
+                name="parroquia"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Parroquia</FormLabel>
+
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -201,43 +175,51 @@ function RegisterContribuyente() {
                             )}
                           >
                             {field.value
-                              ? languages.find(
-                                  (language) => language.value === field.value
-                                )?.label
+                              ? parroquia.find(
+                                  (parroquia) =>
+                                    parroquia.id === field.value
+                                )?.descripcion
                               : "Parroquia"}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
+
                       <PopoverContent className="w-[250px] p-0">
-                        <Command>
-                          <CommandInput placeholder="Parroquias..." />
-                          <CommandEmpty>Parroquia no encontrada.</CommandEmpty>
-                          <CommandGroup>
-                            {languages.map((language) => (
-                              <CommandItem
-                                value={language.value}
-                                key={language.value}
-                                onSelect={(value) => {
-                                  form.setValue(
-                                    "typeContribuyente",
-                                    value as any
-                                  );
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    language.value === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {language.label}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </Command>
+                        <ScrollArea className="h-72 w-full rounded-md border">
+                          <Command shouldFilter={false}>
+                            <CommandInput
+                              placeholder="Parroquias..."
+                              onValueChange={(search) => {
+                                getFilteredParroquia(search);
+                              }}
+                            />
+                            <CommandEmpty>
+                              Parroquia no encontrada.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {filteredParroquia.map((parroquia) => (
+                                <CommandItem
+                                  value={parroquia.id}
+                                  key={parroquia.id}
+                                  onSelect={(value) => {
+                                    form.setValue("parroquia", value);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      parroquia.id === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {parroquia.descripcion}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </Command>
+                        </ScrollArea>
                       </PopoverContent>
                     </Popover>
 
@@ -247,7 +229,7 @@ function RegisterContribuyente() {
               />
               <FormField
                 control={form.control}
-                name="typeContribuyente"
+                name="sectores"
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
                     <FormLabel>Sector</FormLabel>
@@ -258,48 +240,50 @@ function RegisterContribuyente() {
                             variant="outline"
                             role="combobox"
                             className={cn(
-                              "w-[400px] justify-between",
+                              "w-[70%] min-w-[250px] justify-between",
                               !field.value && "text-muted-foreground"
                             )}
                           >
                             {field.value
-                              ? languages.find(
-                                  (language) => language.value === field.value
-                                )?.label
+                              ? sectores.find(
+                                  (sectores) => sectores.id === field.value
+                                )?.descripcion
                               : "Sector"}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-[400px] p-0">
-                        <Command>
-                          <CommandInput placeholder="Sectores..." />
+                      <ScrollArea className="h-72 w-full rounded-md border">
+                      <Command  shouldFilter={false}>
+                          <CommandInput placeholder="Sectores..." onValueChange={(search) => {
+                                getFilteredSector(search);
+                              }} />
                           <CommandEmpty>Sector no encontrado.</CommandEmpty>
                           <CommandGroup>
-                            {languages.map((language) => (
+                            {filteredSector.map((sectores) => (
                               <CommandItem
-                                value={language.value}
-                                key={language.value}
+                                value={sectores.id}
+                                key={sectores.id}
                                 onSelect={(value) => {
-                                  form.setValue(
-                                    "typeContribuyente",
-                                    value as any
-                                  );
+                                  form.setValue("sectores", value);
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    language.value === field.value
+                                    sectores.id === field.value
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
                                 />
-                                {language.label}
+                                {`${sectores.idZona}-${sectores.descripcion}`}
                               </CommandItem>
                             ))}
                           </CommandGroup>
                         </Command>
+                      </ScrollArea>
+                        
                       </PopoverContent>
                     </Popover>
 
@@ -320,6 +304,7 @@ function RegisterContribuyente() {
                     <Textarea
                       placeholder="Direccion..."
                       className="resize-none"
+                      autoComplete="off"
                       {...field}
                     />
                   </FormControl>
@@ -328,15 +313,14 @@ function RegisterContribuyente() {
               )}
             />
             <div className=" mb-4 w-[45%]">
-
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem >
+                  <FormItem>
                     <FormLabel>Correo Electronico</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} autoComplete="off" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -345,21 +329,20 @@ function RegisterContribuyente() {
             </div>
           </div>
           <FormField
-                control={form.control}
-                name="telefono"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Teléfono</FormLabel>
-                    <FormControl>
-                      <Input className="w-[250px]" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            control={form.control}
+            name="telefono"
+            render={({ field }) => (
+              <FormItem className="mb-4">
+                <FormLabel>Teléfono</FormLabel>
+                <FormControl>
+                  <Input className="w-[250px]" {...field} autoComplete="off" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <div className="w-full flex justify-center items-center">
-
-          <Button   type="submit">Registrar</Button>
+            <Button type="submit">Registrar</Button>
           </div>
         </form>
       </Form>
