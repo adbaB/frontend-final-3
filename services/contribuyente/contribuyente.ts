@@ -1,4 +1,4 @@
-import { Contribuyente, ContribuyenteCreate, ContribuyenteEndpoint } from "@/models/contribuyente.models";
+import { Contribuyente, ContribuyenteCreate, ContribuyenteEndpoint, ContribuyenteUpdate } from "@/models/contribuyente.models";
 import axios from "axios";
 import {contribuyenteAdapter } from "./contribuyente.adapter";
 
@@ -11,7 +11,8 @@ export async function findAllContribuyente(){
   };
   try {
     const response  = await axios.request(options)
-    const dataFormatted: Contribuyente[] = response.data.map((contribuyente: ContribuyenteEndpoint)=>{
+    console.log(response)
+    const dataFormatted: Contribuyente[] = response.data.results.map((contribuyente: ContribuyenteEndpoint)=>{
        return contribuyenteAdapter(contribuyente)
     })
     return dataFormatted
@@ -24,6 +25,21 @@ export async function createContribuyente(data:ContribuyenteCreate){
   const options = {
     method: 'POST',
     url: 'http://localhost:3002/contribuyente',
+    headers: {'Content-Type': 'application/json'},
+    data
+  };
+  try {
+    const response = await axios.request(options)
+    console.log(response)
+    return response
+  } catch (error) {
+    console.log(error)
+  }
+}
+export async function updateContribuyente(id:number,data:ContribuyenteUpdate) {
+  const options = {
+    method: 'PATCH',
+    url: `http://localhost:3002/contribuyente/${id}`,
     headers: {'Content-Type': 'application/json'},
     data
   };

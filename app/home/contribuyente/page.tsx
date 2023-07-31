@@ -42,49 +42,20 @@ import {
 import Link from "next/link"
 import { Plus } from "lucide-react"
 import { useContribuyente } from "./hooks/useContribuyente"
+import { Estado, TypeContribuyente } from "@/models/contribuyente.models"
+import { useRouter } from "next/router"
 
-const data: Payment[] = [
-  {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@yahoo.com",
-  },
-  {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@gmail.com",
-  },
-  {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@gmail.com",
-  },
-  {
-    id: "5kma53ae",
-    amount: 874,
-    status: "success",
-    email: "Silas22@gmail.com",
-  },
-  {
-    id: "bhqecj4p",
-    amount: 721,
-    status: "failed",
-    email: "carmella@hotmail.com",
-  },
-]
 
-export type Payment = {
-  id: string,
+
+export type Contribuyente = {
+  id: number,
   ruc: string,
-  nombreContribuyente: string
-  status: "Activo" | "Inactivo" | "Suspendido"
-  email: string
+  nombreContribuyente: string,
+  typeContribuyente: string;
+  status: Estado,
 }
 
-export const columns: ColumnDef<Payment>[] = [
+export const columns: ColumnDef<Contribuyente>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -108,37 +79,42 @@ export const columns: ColumnDef<Payment>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
+      <div className={`capitalize ${row.getValue("status") === 'activo'? 'bg-green-600':''} ${row.getValue("status") === 'inactivo'? 'bg-yellow-500':''} ${row.getValue("status") === 'suspendido'? 'bg-red-500':''} rounded text-white text-center py-1`}>{row.getValue("status")}</div>
     ),
   },
   {
-    accessorKey: "email",
+    accessorKey: "ruc",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Email
+          RUC
           <CaretSortIcon className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.getValue("ruc")}</div>,
   },
   {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
+    accessorKey:'typeContribuyente',
+    header: ({column}) => <div className="text-left ">Tipo de Contribuyente</div>,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"))
+      
 
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount)
 
-      return <div className="text-right font-medium">{formatted}</div>
+      return <div className="text-left capitalize font-medium">{row.getValue("typeContribuyente")}</div>
+    },
+  },
+  {
+    accessorKey: "nombreContribuyente",
+    header: () => <div className="text-left">Nombre Contribuyente</div>,
+    cell: ({ row }) => {
+      
+
+
+      return <div className="text-left capitalize font-medium">{row.getValue("nombreContribuyente")}</div>
     },
   },
   {
@@ -158,13 +134,15 @@ export const columns: ColumnDef<Payment>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
+              onClick={() => navigator.clipboard.writeText( payment.ruc)}
             >
-              Copy payment ID
+              Copiar RUC
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link href={`contribuyente/${payment.id}`}>Ver Contribuyente</Link>
+              </DropdownMenuItem>
+            <DropdownMenuItem>Ver Liquidaciones</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -180,7 +158,23 @@ export default function DataTableDemo() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
-
+  const [data,setData] = React.useState<Contribuyente[] | []>([])
+  const {contribuyente} = useContribuyente()
+  React.useEffect(() => {
+    if(typeof contribuyente !== 'undefined'){
+      const data =  contribuyente.map(({id,ruc, nombre,typeContribuyente,estado})=> {
+        return {
+          id,
+          ruc,
+          nombreContribuyente: nombre,
+          typeContribuyente,
+          status: estado === undefined ? Estado.Inactivo : estado
+        }
+      })
+      setData(data)
+    }
+  }, [contribuyente])
+  
   const table = useReactTable({
     data,
     columns,
@@ -199,7 +193,7 @@ export default function DataTableDemo() {
       rowSelection,
     },
   })
-  const {contribuyente, setContribuyente} = useContribuyente()
+
   return (
     <div className="w-full">
       <div className="mt-6 flex justify-between">
@@ -217,10 +211,10 @@ export default function DataTableDemo() {
       </div>
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+          placeholder="Filtrar Contribuyente"
+          value={(table.getColumn("nombreContribuyente")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
+            table.getColumn("nombreContribuyente")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

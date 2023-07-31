@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
   Contribuyente,
+  Estado,
   TypeContribuyente,
 } from "@/models/contribuyente.models";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -69,15 +70,13 @@ function Contribuyente({ params }: PropsContribuyente) {
     getFilteredSector,
     filteredParroquia,
     filteredSector,
-    schema,
-    onSubmitForm,
+    updateSchema,
+    onUpdateForm,
+    estadoArray
   } = useFormContribuyente();
 
   const { handlerChange } = useInputCedula();
 
-  const handlerUpdate = () => {
-    setIsEdit((e) => !e);
-  };
   const value = {
     nombre: contribuyente?.nombre || "",
     cedula: contribuyente?.numeroIdentificacion || "",
@@ -89,9 +88,10 @@ function Contribuyente({ params }: PropsContribuyente) {
     typeContribuyente:
       contribuyente?.typeContribuyente ||
       TypeContribuyente.PersonaNaturalComercial,
+    estado: contribuyente?.estado || Estado.Suspendido
   };
-  const form = useForm<Zod.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<Zod.infer<typeof updateSchema>>({
+    resolver: zodResolver(updateSchema),
     defaultValues: {
       nombre: "",
       cedula: "",
@@ -111,7 +111,7 @@ function Contribuyente({ params }: PropsContribuyente) {
         }  rounded-xl shadow-md`}
       >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmitForm)} className="mt-4">
+          <form onSubmit={form.handleSubmit((data)=>  (onUpdateForm(+params.idContribuyente,data,setIsEdit)))} className="mt-4">
             <div className="flex justify-end">
               {!isEdit ? (
                 <>
@@ -137,9 +137,12 @@ function Contribuyente({ params }: PropsContribuyente) {
                     <X />
                     <p className="font-bold">Cancelar</p>
                   </Button>
-                  <Button className="flex gap-3 p-3 bg-green-600 hover:bg-green-500">
+                  <Button className="flex gap-3 p-3 bg-green-600 hover:bg-green-500" 
+                  >
                     <Save />
-                    <p className="font-bold">Guardar</p>
+                    <p className="font-bold"
+
+                    >Guardar</p>
                   </Button>
                 </div>
               )}
@@ -440,6 +443,8 @@ function Contribuyente({ params }: PropsContribuyente) {
                 />
               </div>
             </div>
+            <div className="flex gap-6 items-center">
+
             <FormField
               control={form.control}
               name="telefono"
@@ -458,6 +463,72 @@ function Contribuyente({ params }: PropsContribuyente) {
                 </FormItem>
               )}
             />
+              <FormField
+                control={form.control}
+                name="estado"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Estado</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            disabled={!isEdit}
+                            className={cn(
+                              "w-[250px] justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value
+                              ? estadoArray.find(
+                                  (tipo) =>
+                                                    tipo.value
+                                     === field.value
+                                )?.value
+                              : "Estado"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Razón Social..." />
+                          <CommandEmpty>No Encotrado.</CommandEmpty>
+                          <CommandGroup>
+                            {estadoArray.map((tipo) => (
+                              <CommandItem
+                                value={tipo.value}
+                                key={tipo.value}
+                                onSelect={(value) => {
+                                  form.setValue(
+                                    "estado",
+                                    value as any
+                                  );
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    tipo.value === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {tipo.value}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </form>
         </Form>
       </div>

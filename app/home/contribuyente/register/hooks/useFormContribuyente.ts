@@ -3,14 +3,14 @@ import { useParroquia } from "@/hooks/useParroquia";
 import { useSector } from "@/hooks/useSector";
 import { Parroquia } from "@/models/parroquia.models";
 import { Sector } from "@/models/sector.models";
-import { createContribuyente } from "@/services/contribuyente/contribuyente";
-import { contribuyenteInterceptor } from "@/services/contribuyente/contribuyente.interceptor";
+import { createContribuyente, updateContribuyente } from "@/services/contribuyente/contribuyente";
+import { createContribuyenteInterceptor, updateContribuyenteInterceptor } from "@/services/contribuyente/contribuyente.interceptor";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import * as zod from "zod";
-import { TypeContribuyente } from "@/models/contribuyente.models";
+import { Estado, TypeContribuyente } from "@/models/contribuyente.models";
 
 function useFormContribuyente() {
   const { toast } = useToast()
@@ -30,7 +30,11 @@ function useFormContribuyente() {
       value: "PersonaNaturalComercial",
     },
   ];
-
+  const estadoArray: {value:Estado}[] = [
+    {value:Estado.Activo},
+    {value:Estado.Inactivo},
+    {value:Estado.Suspendido}
+  ]
 
   const [filteredParroquia, setFilteredParroquia] = useState<Parroquia[] | []>(
     []
@@ -57,6 +61,24 @@ function useFormContribuyente() {
       .min(10, "telefono no valido")
       .max(15, "telefono no valido"),
     email: zod.string().email("email no valido"),
+  });
+
+  const updateSchema = zod.object({
+    cedula: zod.string().min(7, "CI/RIF no valido").max(15, "CI/RIF no valido"),
+    nombre: zod
+      .string()
+      .min(3, "Nombre no valido")
+      .max(150, "Nombre no valido"),
+    typeContribuyente: zod.nativeEnum(TypeContribuyente),
+    direccion: zod.string().min(10, "direccion no valida"),
+    parroquia: zod.enum(getParroquiasId()),
+    sectores: zod.enum(getIdsSectores()),
+    telefono: zod
+      .string()
+      .min(10, "telefono no valido")
+      .max(15, "telefono no valido"),
+    email: zod.string().email("email no valido"),
+    estado: zod.nativeEnum(Estado)
   });
   const form = useForm<Zod.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -86,8 +108,7 @@ function useFormContribuyente() {
 
 
   async function onSubmitForm (data: Zod.infer<typeof schema>){
-    console.log(data)
-    const dataFormatted = contribuyenteInterceptor(data)
+    const dataFormatted = createContribuyenteInterceptor(data)
     const responseData =  await createContribuyente(dataFormatted)
     console.log(responseData)
     toast({
@@ -98,20 +119,33 @@ function useFormContribuyente() {
     if (responseData?.data.id) {
       route.push(`${responseData.data.id}`)
     }
-
-
+  
+    
+  }
+  async function onUpdateForm(id:number,data: Zod.infer<typeof updateSchema>,handlerUpdate: Function) {
+   const dataFormatted = updateContribuyenteInterceptor(data)
+   const responseData = await updateContribuyente(id,dataFormatted)
+   if(responseData?.data.affected){
+     toast({
+      title: 'Contribuyente Actualizado correctamente'
+     })
+   }
+   handlerUpdate(false)
   }
   return {
     schema,
+    updateSchema,
     form,
     tipoContribuyenteArray,
+    estadoArray,
     parroquia,
     getFilteredParroquia,
     getFilteredSector,
     filteredParroquia,
     filteredSector,
     sectores,
-    onSubmitForm
+    onSubmitForm,
+    onUpdateForm
   };
 }
 

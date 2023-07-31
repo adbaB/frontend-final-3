@@ -36,11 +36,14 @@ export interface ContribuyenteCreate {
   telefono: string;
   correo: string;
 }
+export interface ContribuyenteUpdate  extends Partial<ContribuyenteCreate> {
+  estado?: Estado
+}
 
 export enum Estado {
-  Activo = "Activo",
-  Inactivo = "Inactivo",
-  Suspendido = "Suspendido",
+  Activo = "activo",
+  Inactivo = "inactivo",
+  Suspendido = "suspendido",
 }
 export interface Parroquia {
   id: string;
